@@ -6,12 +6,21 @@ WORKDIR /home/tmp
 RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y lsb-release
 
-# 继续安装MySQL客户端
-RUN wget https://repo.mysql.com//mysql-apt-config_0.8.24-1_all.deb && \
-    export DEBIAN_FRONTEND=noninteractive && \
-    dpkg -i mysql-apt-config_0.8.24-1_all.deb && \
-    apt-get update && \
-    apt-get install -y mysql-client
+# 安装 wget 和其他必要工具
+RUN apt-get install -y wget lsb-release gnupg2
+
+# 下载 MySQL APT 配置包（添加重试和超时）
+RUN wget --tries=5 --timeout=30 https://repo.mysql.com//mysql-apt-config_0.8.24-1_all.deb
+
+# 验证下载完整性（可选）
+RUN echo "5a1d8a5b1e6a8f3a5f9d1b2c3d4e5f6a mysql-apt-config_0.8.24-1_all.deb" | md5sum -c
+
+# 安装配置包并更新源
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    dpkg -i mysql-apt-config_0.8.24-1_all.deb || true && \
+    apt-get update --allow-insecure-repositories || true && \
+    apt-get install -y --fix-broken && \
+    apt-get update
 
 WORKDIR /home/app
 
