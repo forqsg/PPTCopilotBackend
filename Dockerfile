@@ -1,23 +1,24 @@
-FROM golang:1.20-bullseye
+FROM golang:1.20
 
 WORKDIR /home/tmp
-# 安装mysql-client
-# 换源（Debian系统确保存在sources.list）
+
+# 换源 
 RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-RUN apt-get update && apt-get install -y lsb-release
+RUN apt-get update
 
-# 安装 wget 和其他必要工具
-RUN apt-get install -y wget lsb-release gnupg2
+# 安装必要工具
+RUN apt-get install -y wget gnupg2 lsb-release
 
-# 下载 MySQL APT 配置包（添加重试和超时）
-RUN wget --tries=5 --timeout=30 https://repo.mysql.com//mysql-apt-config_0.8.24-1_all.deb
+# 手动配置MySQL APT源（替代配置包）
+RUN echo "deb http://repo.mysql.com/apt/debian/ $(lsb_release -cs) mysql-8.0" > /etc/apt/sources.list.d/mysql.list && \
+    echo "deb http://repo.mysql.com/apt/debian/ $(lsb_release -cs) connector-python" >> /etc/apt/sources.list.d/mysql.list
 
-# 安装配置包并更新源
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    dpkg -i mysql-apt-config_0.8.24-1_all.deb || true && \
-    apt-get update --allow-insecure-repositories || true && \
-    apt-get install -y --fix-broken && \
-    apt-get update
+# 添加MySQL官方GPG密钥
+RUN wget -qO - https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 | apt-key add -
+
+# 更新源并安装MySQL客户端
+RUN apt-get update && \
+    apt-get install -y mysql-client
 
 WORKDIR /home/app
 
