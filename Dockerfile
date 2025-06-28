@@ -3,7 +3,7 @@ FROM golang:1.20
 WORKDIR /home/tmp
 
 # 换源 
-RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+# RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 RUN apt-get update
 
 # 安装必要工具
