@@ -1,4 +1,4 @@
-FROM golang:1.20-debian
+FROM golang:1.20-bullseye
 
 WORKDIR /home/tmp
 # 安装mysql-client
